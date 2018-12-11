@@ -11,12 +11,11 @@ import { RadixAccountSystem,
     radixUniverse,
     RadixNodeConnection,
     RadixDecryptionProvider,
-
  } from '../..'
 
 
 import { logger } from '../common/RadixLogger'
-import { RadixAtomUpdate, RadixAddress } from '../atommodel';
+import { RadixAtomUpdate, RadixAddress } from '../atommodel'
 
 export default class RadixAccount {
     private nodeConnection: RadixNodeConnection
@@ -125,9 +124,7 @@ export default class RadixAccount {
             this.nodeConnection.on('closed', this._onConnectionClosed)
 
             // Subscribe to events
-            this.atomSubscription = this.nodeConnection.subscribe(
-                this.address.toString(),
-            )
+            this.atomSubscription = this.nodeConnection.subscribe(this.address.toString())
             this.atomSubscription.subscribe({
                 next: this._onAtomReceived,
                 error: error => logger.error('Subscription error:', error)

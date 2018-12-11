@@ -1,5 +1,6 @@
 import { BehaviorSubject, Subject } from 'rxjs/Rx'
 import { Client } from 'rpc-websockets'
+import { setTimeout } from 'timers'
 
 import RadixNode from './RadixNode'
 
@@ -7,7 +8,6 @@ import { RadixAtom, RadixEUID, RadixSerializer, RadixAtomUpdate } from '../atomm
 import { logger } from '../common/RadixLogger'
 
 import events from 'events'
-import { setTimeout } from 'timers';
 
 interface Notification {
     subscriberId: number
@@ -36,22 +36,13 @@ export class RadixNodeConnection extends events.EventEmitter {
     private _addressSubscriptions: { [address: string]: number } = {}
 
     private lastSubscriberId = 1
-    private numberOfSubscriptions = new BehaviorSubject<number>(1)
+    private numberOfSubscriptions = new BehaviorSubject<number>(0)
 
     public address: string
 
     constructor(readonly node: RadixNode, readonly nodeRPCAddress: (nodeIp: string) => string) {
         super()
         this.node = node
-        // Once the numberOfSubscriptions reach 0 close the connection
-        this.numberOfSubscriptions.subscribe((value) => {
-            if (value <= 0) {
-                logger.info(`Node ${this.address} closed`)
-                setTimeout(() => {
-                    this.close()
-                }, 5000)
-            }
-        })
     }
 
     private getSubscriberId() {
@@ -69,11 +60,9 @@ export class RadixNodeConnection extends events.EventEmitter {
     }
 
     private ping = () => {
-        if (this.isReady()) {
-            this._socket
-            .call('Network.getSelf', { id: 0 }).then((response: any) => {
-                logger.debug(`Ping`, response)
-            })
+        if (this.isReady() && this.numberOfSubscriptions.getValue() > 0) {
+            this._socket.call('Network.getSelf', { id: 0 })
+                .then((response: any) => logger.debug(`Ping`, response))
         }
     }
 
@@ -131,7 +120,7 @@ export class RadixNodeConnection extends events.EventEmitter {
      * @param address Base58 formatted address
      * @returns A stream of atoms
      */
-    public subscribe(address: string, first?: boolean): Subject<RadixAtomUpdate> {
+    public subscribe(address: string): Subject<RadixAtomUpdate> {
         const subscriberId = this.getSubscriberId()
         const subscription = new Subject<RadixAtomUpdate>()
 
@@ -148,10 +137,8 @@ export class RadixNodeConnection extends events.EventEmitter {
             .then((response: any) => {
                 logger.info(`Subscribed for address ${address}`, response)
                 
-                if (!first) {
-                    // Increase the number of subscriptions
-                    this.numberOfSubscriptions.next(this.numberOfSubscriptions.getValue() + 1)
-                }
+                // Increase the number of subscriptions
+                this.numberOfSubscriptions.next(this.numberOfSubscriptions.getValue() + 1)
             })
             .catch((error: any) => {
                 logger.error(error)
@@ -285,7 +272,7 @@ export class RadixNodeConnection extends events.EventEmitter {
         return this._socket
             .call('Atoms.getAtomInfo', { id: id.toJson() })
             .then((response: any) => {
-                return RadixSerializer.fromJson(response.result) as RadixAtom
+                return RadixSerializer.fromJSON(response.result) as RadixAtom
             })
     }
 
@@ -364,7 +351,7 @@ export class RadixNodeConnection extends events.EventEmitter {
         //    logger.info('Atom saved!')
         // })
 
-        const deserializedAtoms = RadixSerializer.fromJson(notification.atoms) as RadixAtom[]
+        const deserializedAtoms = RadixSerializer.fromJSON(notification.atoms) as RadixAtom[]
 
         logger.info(deserializedAtoms)
 
@@ -373,7 +360,7 @@ export class RadixNodeConnection extends events.EventEmitter {
             const deserializedAtom = deserializedAtoms[i]
             const serializedAtom = notification.atoms[i]
 
-            if (serializedAtom.hid && deserializedAtom.hid.equals(RadixEUID.fromJson(serializedAtom.hid))) {
+            if (serializedAtom.hid && deserializedAtom.hid.equals(RadixEUID.fromJSON(serializedAtom.hid))) {
                 logger.info('HID match')
             } else if (serializedAtom.hid) {
                 logger.error('HID mismatch')
@@ -393,3 +380,5 @@ export class RadixNodeConnection extends events.EventEmitter {
 }
 
 export default RadixNodeConnection
+
+
