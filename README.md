@@ -1,4 +1,4 @@
-[![License MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/radixdlt/radixdlt-js/blob/master/LICENSE)
+[![License MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 # radixdlt-js library
 
@@ -83,11 +83,7 @@ node: { crypto: true, path: true }
 
 ## Contribute
 
-Contributions are welcome, we simply ask to:
-
-* Fork the codebase
-* Make changes
-* Submit a pull request for review
+Contributions are welcome, we simply ask to review our [Contributing](CONTRIBUTING.md) guidelines before submitting changes to the project.
 
 When contributing to this repository, we recommend to discuss the change you wish to make via issue,
 email, or any other method with the owners of this repository before making a change. 
