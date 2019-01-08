@@ -168,10 +168,10 @@ export class RadixNodeConnection extends events.EventEmitter {
                 })
                 .then((response: any) => {
                     logger.info(`Unsubscribed for address ${address}`)
-
+                    
                     delete this._addressSubscriptions[address]
 
-                    this._subscriptions[address].complete()
+                    this._subscriptions[subscriberId].complete()
 
                     resolve(response)
                 })
