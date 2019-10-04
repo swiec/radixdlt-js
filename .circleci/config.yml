@@ -17,4 +17,9 @@ jobs:
           command: |
             set -x
             pwd
-            ls
+            ls -la
+      - run:
+          name: start minimal network
+          command: |
+            set x
+            docker-compose -f .circleci/minimal-network.yml up -d
