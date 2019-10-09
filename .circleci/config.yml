@@ -1,0 +1,28 @@
+version: 2.0
+jobs:
+  build:
+    docker:
+      - image: circleci/node:10.12-jessie
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: |
+          sudo docker container kill js-lib || true
+          sudo docker container rm js-lib || true
+      - run: |
+          sudo docker-compose -f ".circleci/minimal-network.yml" up -d
+          sudo docker run -d --network host --name js-lib js-lib tail -f /dev/null
+          mkdir ~/junit
+      - run: |
+          yarn test:integration
+      - store_test_results:
+          path: ~/junit
+      - store_artifacts:
+          path: ~/junit
+
+          #          sudo docker exec js-lib yarn test:integration
+          #      - run:
+          #          command: |
+          #            mocha -r ts-node/register test/integration/**/*.spec.ts test/integration/*.spec.ts --exit --reporter mocha-junit-reporter
+          #          MOCHA_FILE: ~/junit/test-results.xml
+          #          when: always
