@@ -2,24 +2,27 @@ version: 2.0
 jobs:
   build:
     docker:
-      - image: circleci/ruby:2.4.2-jessie-node
+      - image: circleci/node:10.12-jessie
     steps:
-      - run:
-          name: Install Docker Compose
-          command: |
-            curl -L https://github.com/docker/compose/releases/download/1.19.0/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
-            chmod +x ~/docker-compose
-            sudo mv ~/docker-compose /usr/local/bin/docker-compose
       - checkout
-      - run: echo "Hello World"
-      - run:
-          name: check directory
-          command: |
-            set -x
-            pwd
-            ls -la
-      - run:
-          name: start minimal network
-          command: |
-            set x
-            docker-compose -f .circleci/minimal-network.yml up -d
+      - setup_remote_docker
+      - run: |
+          sudo docker container kill js-lib || true
+          sudo docker container rm js-lib || true
+      - run: |
+          sudo docker-compose -f ".circleci/minimal-network.yml" up -d
+          sudo docker run -d --network host --name js-lib js-lib tail -f /dev/null
+          mkdir ~/junit
+      - run: |
+          yarn test:integration
+      - store_test_results:
+          path: ~/junit
+      - store_artifacts:
+          path: ~/junit
+
+          #          sudo docker exec js-lib yarn test:integration
+          #      - run:
+          #          command: |
+          #            mocha -r ts-node/register test/integration/**/*.spec.ts test/integration/*.spec.ts --exit --reporter mocha-junit-reporter
+          #          MOCHA_FILE: ~/junit/test-results.xml
+          #          when: always

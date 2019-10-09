@@ -1,10 +1,17 @@
 language: node_js
 node_js: node 
 
+services:
+  - docker
+
 addons:
   sonarcloud:
     organization: "radixdlt-github"
 
+before_install:
+  - docker-compose -f .circleci/minimal-network.yml up -d
+
 script: 
   - yarn coverage
-  - sonar-scanner
+
+#  - sonar-scanner
