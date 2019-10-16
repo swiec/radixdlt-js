@@ -15,5 +15,5 @@ before_install:
   - docker stop radixdlt-js || true && docker rm radixdlt-js || true
 
 script:
-  - docker run -d --network host --name radixdlt-js radixdlt-js yarn test:integration
+  - docker run --network host --name radixdlt-js radixdlt-js yarn test:integration
 #  - sonar-scanner
