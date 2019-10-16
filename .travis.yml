@@ -9,9 +9,10 @@ addons:
     organization: "radixdlt-github"
 
 before_install:
+  - docker build -t radixdlt-js .
   - docker-compose -f .circleci/minimal-network.yml up -d
+  - docker stop radixdlt-js || true && docker rm radixdlt-js || true
 
-script: 
-  - yarn coverage
-
+script:
+  - docker run -d --network host --name radixdlt-js radixdlt-js yarn test:integration
 #  - sonar-scanner
