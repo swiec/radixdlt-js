@@ -10,10 +10,11 @@ addons:
 
 before_install:
   - docker build -t radixdlt-js .
+  - docker volume create tests-vol
   - docker-compose -f .circleci/minimal-network.yml pull
   - docker-compose -f .circleci/minimal-network.yml up -d
   - docker stop radixdlt-js || true && docker rm radixdlt-js || true
 
 script:
-  - docker run --network host --name radixdlt-js radixdlt-js yarn test:integration
+  - docker run --mount source=tests-vol,target=/tests-results --network host --name radixdlt-js radixdlt-js yarn test:travis
 #  - sonar-scanner
